@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>石灰散布記録</title>
+<style>
+/* ========== リセット・変数 ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body { font-family: 'Hiragino Kaku Gothic ProN','Meiryo','Yu Gothic',sans-serif;
+       background: #f4f5f0; color: #1c2a1a; min-height: 100vh; }
+
+:root {
+  --green-dk:  #2d5a27;
+  --green-mid: #4a7c43;
+  --green-lt:  #d8e8d4;
+  --accent:    #e8f0e6;
+  --bg:        #f4f5f0;
+  --surface:   #ffffff;
+  --border:    #c8d4c4;
+  --text:      #1c2a1a;
+  --sub:       #5a6e56;
+  --danger:    #c0392b;
+  --warn-bg:   #fff3cd;
+  --warn-bdr:  #f0ad4e;
+  --radius:    10px;
+  --shadow:    0 2px 8px rgba(0,0,0,.10);
+  --max-w:     540px;
+}
+
+/* ========== ヘッダー ========== */
+.hd {
+  background: #f0f2ef;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 6px rgba(0,0,0,.10);
+}
+.hd-row1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 16px 4px;
+}
+.hd-logo { height: 26px; width: auto; display: block; }
+.hd-row2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 14px 8px;
+  gap: 8px;
+}
+.hd-icon { font-size: 20px; }
+.hd-title { font-size: 15px; font-weight: 700; color: var(--green-dk); }
+
+/* ========== タブ ========== */
+.tab-bar {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 2px solid var(--green-lt);
+  position: sticky;
+  top: 70px;
+  z-index: 99;
+}
+.tab-btn {
+  flex: 1;
+  padding: 12px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  background: none;
+  color: var(--sub);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.tab-btn.active {
+  color: var(--green-dk);
+  border-bottom-color: var(--green-dk);
+}
+
+/* ========== コンテンツ共通 ========== */
+.tab-content { display: none; padding: 16px; max-width: var(--max-w); margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* ========== カード ========== */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sub);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* ========== フォーム要素 ========== */
+label { display: block; font-size: 13px; font-weight: 600; color: var(--sub); margin-bottom: 4px; }
+input[type=date], input[type=text], select, textarea {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  transition: border-color .2s;
+}
+input[type=date]:focus, input[type=text]:focus, select:focus, textarea:focus {
+  border-color: var(--green-mid);
+}
+textarea { resize: vertical; min-height: 72px; font-size: 15px; }
+.form-group { margin-bottom: 14px; }
+
+/* ========== ボタン ========== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 13px 20px; font-size: 15px; font-weight: 700;
+  border: none; border-radius: 8px; cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(.97); opacity: .85; }
+.btn-primary { background: var(--green-dk); color: #fff; width: 100%; }
+.btn-secondary { background: var(--green-lt); color: var(--green-dk); }
+.btn-danger   { background: #fdecea; color: var(--danger); }
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+
+/* ========== 記録リスト ========== */
+.month-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.month-nav .month-label {
+  font-size: 17px; font-weight: 700; color: var(--green-dk);
+}
+.month-nav .btn { background: var(--green-lt); color: var(--green-dk); padding: 10px 16px; font-size: 18px; }
+
+.rec-item {
+  display: flex; align-items: flex-start;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  gap: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: box-shadow .15s;
+}
+.rec-item:active { box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.rec-date-box {
+  min-width: 52px; text-align: center;
+  background: var(--green-lt);
+  border-radius: 8px;
+  padding: 6px 4px;
+}
+.rec-date-day { font-size: 22px; font-weight: 800; color: var(--green-dk); line-height: 1; }
+.rec-date-dow { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.rec-date-dow.sat { color: #1a237e; }
+.rec-date-dow.sun { color: var(--danger); }
+.rec-body { flex: 1; min-width: 0; }
+.rec-dept { font-size: 15px; font-weight: 700; color: var(--text); }
+.rec-staff { font-size: 13px; color: var(--sub); margin-top: 2px; }
+.rec-note { font-size: 12px; color: var(--sub); margin-top: 4px; white-space: pre-wrap; }
+.no-records { text-align: center; padding: 40px 16px; color: var(--sub); font-size: 14px; }
+
+/* ========== 出力セクション ========== */
+.export-month-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.export-month-label { font-size: 17px; font-weight: 700; color: var(--green-dk); }
+.export-btn-row { display: flex; gap: 8px; flex-direction: column; }
+.export-btn-row .btn { width: 100%; font-size: 15px; padding: 14px; }
+.btn-pdf   { background: #c0392b; color: #fff; }
+.btn-csv   { background: #27ae60; color: #fff; }
+
+/* ========== 設定タブ ========== */
+.setting-section { margin-bottom: 20px; }
+.setting-section h3 { font-size: 14px; font-weight: 700; color: var(--sub); margin-bottom: 10px; }
+.setting-list { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.setting-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--green-lt);
+}
+.setting-item:last-child { border-bottom: none; }
+.setting-item span { font-size: 15px; font-weight: 600; }
+.setting-add {
+  display: flex; gap: 8px; margin-top: 10px;
+}
+.setting-add input {
+  flex: 1; padding: 11px 14px; font-size: 15px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  background: var(--bg); color: var(--text); outline: none;
+}
+.setting-add input:focus { border-color: var(--green-mid); }
+
+/* ========== モーダル ========== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 16px 16px 0 0;
+  padding: 20px 16px 32px; width: 100%;
+  max-width: var(--max-w);
+  max-height: 90vh; overflow-y: auto;
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 0 auto 16px;
+}
+.modal-title {
+  font-size: 16px; font-weight: 700; color: var(--green-dk);
+  margin-bottom: 16px; text-align: center;
+}
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.modal-actions .btn { flex: 1; }
+
+/* ========== 警告バナー ========== */
+.warn-banner {
+  background: var(--warn-bg);
+  border: 1.5px solid var(--warn-bdr);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #7d4e00;
+  margin-bottom: 14px;
+  display: none;
+}
+.warn-banner.show { display: block; }
+
+/* ========== 実施者 複数プルダウン ========== */
+.staff-rows { display: flex; flex-direction: column; gap: 8px; }
+.staff-row  { display: flex; align-items: center; gap: 8px; }
+.staff-row select { flex: 1; }
+.btn-remove-staff {
+  flex-shrink: 0;
+  width: 36px; height: 44px;
+  background: #fdecea; color: var(--danger);
+  border: none; border-radius: 8px; font-size: 20px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-add-staff-row {
+  width: 100%; padding: 10px;
+  background: var(--green-lt); color: var(--green-dk);
+  border: 1.5px dashed var(--green-mid); border-radius: 8px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  margin-top: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ========== トースト ========== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #1c2a1a; color: #fff; padding: 11px 20px;
+  border-radius: 20px; font-size: 14px; font-weight: 600;
+  z-index: 300; opacity: 0; transition: opacity .3s;
+  pointer-events: none; white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+.toast.error { background: var(--danger); }
+
+/* ========== ローディング ========== */
+.loading-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(255,255,255,.6); z-index: 400;
+  align-items: center; justify-content: center;
+}
+.loading-overlay.show { display: flex; }
+.spinner {
+  width: 36px; height: 36px; border: 3px solid var(--green-lt);
+  border-top-color: var(--green-dk); border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ========== 設定バナー ========== */
+.config-banner {
+  background: #fff3cd; border: 1.5px solid #f0ad4e;
+  border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;
+  font-size: 13px; color: #7d4e00;
+}
+.config-banner code {
+  background: #f8d7a0; border-radius: 4px;
+  padding: 1px 5px; font-size: 12px; font-family: monospace;
+}
+</style>
+</head>
+<body>
+
+<!-- ========== ヘッダー ========== -->
+<header class="hd">
+  <div class="hd-row1">
+    <!-- ロゴ画像を使う場合は下の行のコメントを外す -->
+    <!-- <img class="hd-logo" src="image/4_yoko_black.gif" alt="SAIBOKU"> -->
+  </div>
+  <div class="hd-row2">
+    <span class="hd-icon">🌿</span>
+    <span class="hd-title">石灰散布記録</span>
+    <span style="width:28px"></span>
+  </div>
+</header>
+
+<!-- ========== タブバー ========== -->
+<nav class="tab-bar">
+  <button class="tab-btn active" data-tab="input">記録入力</button>
+  <button class="tab-btn" data-tab="list">記録一覧</button>
+  <button class="tab-btn" data-tab="export">出力</button>
+  <button class="tab-btn" data-tab="settings">設定</button>
+</nav>
+
+<!-- ========== 記録入力タブ ========== -->
+<div class="tab-content active" id="tab-input">
+  <div class="card">
+    <div class="card-title">新規記録</div>
+    <div id="dup-warning" class="warn-banner">
+      ⚠ この日付・部署の記録はすでに存在します
+    </div>
+    <div class="form-group">
+      <label>実施日</label>
+      <input type="date" id="inp-date">
+    </div>
+    <div class="form-group">
+      <label>担当部署</label>
+      <select id="inp-dept">
+        <option value="">― 選択してください ―</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>実施者</label>
+      <div id="inp-staff-rows" class="staff-rows"></div>
+      <button type="button" class="btn-add-staff-row" onclick="addStaffRow('inp-staff-rows')">＋ 実施者を追加</button>
+    </div>
+    <div class="form-group">
+      <label>備考</label>
+      <textarea id="inp-note" placeholder="必要があれば記入してください"></textarea>
+    </div>
+    <button class="btn btn-primary" id="btn-save">記録を保存</button>
+  </div>
+</div>
+
+<!-- ========== 記録一覧タブ ========== -->
+<div class="tab-content" id="tab-list">
+  <div class="month-nav">
+    <button class="btn" id="list-prev">‹</button>
+    <span class="month-label" id="list-month-label">―</span>
+    <button class="btn" id="list-next">›</button>
+  </div>
+  <div id="records-container"></div>
+</div>
+
+<!-- ========== 出力タブ ========== -->
+<div class="tab-content" id="tab-export">
+  <div class="export-month-nav">
+    <button class="btn" id="exp-prev">‹</button>
+    <span class="export-month-label" id="exp-month-label">―</span>
+    <button class="btn" id="exp-next">›</button>
+  </div>
+  <div class="card">
+    <div class="card-title">確認情報</div>
+    <div class="form-group">
+      <label>確認日</label>
+      <input type="date" id="exp-confirm-date">
+    </div>
+    <div class="form-group">
+      <label>確認者</label>
+      <input type="text" id="exp-confirm-by" placeholder="確認者名を入力">
+    </div>
+  </div>
+  <div class="export-btn-row">
+    <button class="btn btn-pdf"  id="btn-pdf">📄 PDF で出力（印刷）</button>
+    <button class="btn btn-csv"  id="btn-csv">📊 CSV で出力</button>
+  </div>
+</div>
+
+<!-- ========== 設定タブ ========== -->
+<div class="tab-content" id="tab-settings">
+  <div class="setting-section">
+    <h3>担当部署</h3>
+    <div class="setting-list" id="dept-list"></div>
+    <div class="setting-add">
+      <input type="text" id="new-dept" placeholder="部署名を入力">
+      <button class="btn btn-secondary btn-sm" id="btn-add-dept">追加</button>
+    </div>
+  </div>
+  <div class="setting-section">
+    <h3>実施者</h3>
+    <div class="setting-list" id="staff-list"></div>
+    <div class="setting-add">
+      <input type="text" id="new-staff" placeholder="実施者名を入力">
+      <button class="btn btn-secondary btn-sm" id="btn-add-staff">追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 訂正モーダル ========== -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">記録の訂正</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-group">
+      <label>実施日</label>
+      <input type="date" id="edit-date">
+    </div>
+    <div class="form-group">
+      <label>担当部署</label>
+      <select id="edit-dept"></select>
+    </div>
+    <div class="form-group">
+      <label>実施者</label>
+      <div id="edit-staff-rows" class="staff-rows"></div>
+      <button type="button" class="btn-add-staff-row" onclick="addStaffRow('edit-staff-rows')">＋ 実施者を追加</button>
+    </div>
+    <div class="form-group">
+      <label>備考</label>
+      <textarea id="edit-note"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" id="btn-edit-delete">削除</button>
+      <button class="btn btn-secondary btn-sm" id="btn-edit-cancel">キャンセル</button>
+      <button class="btn btn-primary btn-sm" id="btn-edit-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 重複確認ダイアログモーダル ========== -->
+<div class="modal-overlay" id="dup-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚠ 記録済みの確認</div>
+    <p style="font-size:14px;color:var(--sub);text-align:center;margin-bottom:16px;">
+      同じ日付・担当部署の記録がすでに存在します。<br>上書きしますか？
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-dup-cancel">キャンセル</button>
+      <button class="btn btn-danger"    id="btn-dup-overwrite">上書きする</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PDF印刷用ビュー ========== -->
+<div id="print-area" style="display:none"></div>
+
+<!-- ========== UI補助 ========== -->
+<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  ★★★ ここを自分のSupabase情報に書き換えてください ★★★
+// ============================================================
+const SUPABASE_URL    = 'https://eqpbaffvslpxawltrbpc.supabase.co';  // SupabaseプロジェクトURL
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcGJhZmZ2c2xweGF3bHRyYnBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NjgyMDgsImV4cCI6MjA5NTU0NDIwOH0.47kauTC5Ybot15RRvsKc0cBZcNWfYEc5rYxUbUBo8_8'; // anon公開キー
+// ============================================================
+
+// ===== Supabase REST APIヘルパー =====
+const SB_HEADERS = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation'
+};
+
+async function sbGet(table, params = '') {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbPost(table, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: SB_HEADERS,
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbPatch(table, filter, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+    method: 'PATCH',
+    headers: SB_HEADERS,
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbDelete(table, filter) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+    method: 'DELETE',
+    headers: { ...SB_HEADERS, 'Prefer': '' }
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+// ===== 状態管理 =====
+let departments = [];
+let staffList   = [];
+let records     = [];   // { id, record_date, note, dept_id, dept_name, staff_list:[{id,name}] }
+let listYear    = new Date().getFullYear();
+let listMonth   = new Date().getMonth() + 1;
+let expYear     = listYear;
+let expMonth    = listMonth;
+let pendingDupId = null;
+
+const dowJa = ['日','月','火','水','木','金','土'];
+
+// ===== ローディング =====
+function loading(on) {
+  document.getElementById('loading').classList.toggle('show', on);
+}
+
+// ===== トースト =====
+let toastTimer = null;
+function toast(msg, isError = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = 'toast', 2500);
+}
+
+// ===== 月表示ラベル =====
+function monthLabel(y, m) { return y + '年' + m + '月'; }
+
+// ===== 今日の日付 =====
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+
+// ===== エスケープ =====
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ===== 初期化 =====
+async function init() {
+  loading(true);
+  try {
+    await Promise.all([loadDepts(), loadStaff()]);
+    populateSelects();
+    document.getElementById('inp-date').value = todayStr();
+    await loadRecords();
+    renderRecordList();
+  } catch(e) {
+    console.error('init error:', e);
+    toast('読み込みエラー: ' + e.message, true);
+  }
+  loading(false);
+  updateMonthLabels();
+}
+
+// ===== データ読み込み =====
+async function loadDepts() {
+  departments = await sbGet('departments', 'order=sort_order,id');
+}
+
+async function loadStaff() {
+  staffList = await sbGet('staff', 'order=sort_order,id');
+}
+
+async function loadRecords() {
+  // 月の開始・終了日
+  const from = `${listYear}-${String(listMonth).padStart(2,'0')}-01`;
+  const lastDay = new Date(listYear, listMonth, 0).getDate();
+  const to   = `${listYear}-${String(listMonth).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+
+  // records と departments を JOIN（Supabase embedded resource）
+  const recs = await sbGet(
+    'records',
+    `record_date=gte.${from}&record_date=lte.${to}&order=record_date,department_id&select=*,departments(id,name,sort_order)`
+  );
+
+  if (!recs.length) { records = []; return; }
+
+  // record_staff と staff を一括取得
+  const recIds = recs.map(r => r.id);
+  const staffRows = await sbGet(
+    'record_staff',
+    `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name,sort_order)&order=staff(sort_order),staff(id)`
+  );
+
+  // staffMapを構築
+  const staffMap = {};
+  for (const sr of staffRows) {
+    if (!staffMap[sr.record_id]) staffMap[sr.record_id] = [];
+    staffMap[sr.record_id].push(sr.staff);
+  }
+
+  records = recs.map(r => ({
+    id:          r.id,
+    record_date: r.record_date,
+    note:        r.note || '',
+    dept_id:     r.departments.id,
+    dept_name:   r.departments.name,
+    staff_list:  staffMap[r.id] || [],
+    staff_ids:   (staffMap[r.id] || []).map(s => s.id)
+  }));
+}
+
+// ===== セレクト生成（部署用） =====
+function buildOptions(sel, items, selected = null) {
+  sel.innerHTML = '<option value="">― 選択してください ―</option>';
+  items.forEach(it => {
+    const opt = document.createElement('option');
+    opt.value = it.id;
+    opt.textContent = it.name;
+    if (selected && String(it.id) === String(selected)) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+// ===== 実施者行操作 =====
+function addStaffRow(containerId, selectedId = '') {
+  const container = document.getElementById(containerId);
+  const opts = staffList.map(s =>
+    `<option value="${s.id}"${String(s.id) === String(selectedId) ? ' selected' : ''}>${escHtml(s.name)}</option>`
+  ).join('');
+  const row = document.createElement('div');
+  row.className = 'staff-row';
+  row.innerHTML =
+    `<select><option value="">― 選択 ―</option>${opts}</select>` +
+    `<button type="button" class="btn-remove-staff" onclick="removeStaffRow(this)" aria-label="削除">×</button>`;
+  container.appendChild(row);
+}
+
+function removeStaffRow(btn) {
+  const container = btn.closest('.staff-rows');
+  if (container.querySelectorAll('.staff-row').length <= 1) {
+    container.querySelector('select').value = '';
+    return;
+  }
+  btn.closest('.staff-row').remove();
+}
+
+function getCheckedStaffIds(containerId) {
+  return Array.from(
+    document.querySelectorAll(`#${containerId} select`)
+  ).map(sel => parseInt(sel.value)).filter(v => v > 0);
+}
+
+function buildStaffRows(containerId, selectedIds = []) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  if (!selectedIds.length) {
+    addStaffRow(containerId);
+  } else {
+    selectedIds.forEach(id => addStaffRow(containerId, id));
+  }
+}
+
+function populateSelects() {
+  buildOptions(document.getElementById('inp-dept'),  departments);
+  buildOptions(document.getElementById('edit-dept'), departments);
+  buildStaffRows('inp-staff-rows');
+  buildStaffRows('edit-staff-rows');
+}
+
+// ===== 重複チェック（入力フォーム） =====
+function checkDup() {
+  const date   = document.getElementById('inp-date').value;
+  const deptId = document.getElementById('inp-dept').value;
+  if (!date || !deptId) { document.getElementById('dup-warning').classList.remove('show'); return; }
+  const exists = records.some(r => r.record_date === date && String(r.dept_id) === String(deptId));
+  document.getElementById('dup-warning').classList.toggle('show', exists);
+}
+
+// ===== 記録保存 =====
+document.getElementById('btn-save').addEventListener('click', async () => {
+  const date     = document.getElementById('inp-date').value;
+  const deptId   = parseInt(document.getElementById('inp-dept').value);
+  const staffIds = getCheckedStaffIds('inp-staff-rows');
+  const note     = document.getElementById('inp-note').value;
+
+  if (!date || !deptId || !staffIds.length) {
+    toast('実施日・担当部署・実施者を選択してください', true); return;
+  }
+
+  loading(true);
+  try {
+    // 重複チェック
+    const existing = await sbGet('records', `record_date=eq.${date}&department_id=eq.${deptId}&select=id&limit=1`);
+    if (existing.length) {
+      pendingDupId = existing[0].id;
+      loading(false);
+      document.getElementById('dup-modal').classList.add('open');
+      return;
+    }
+    await saveRecord(null, date, deptId, staffIds, note);
+    toast('記録しました ✓');
+    resetInputForm();
+    await loadRecords();
+    renderRecordList();
+  } catch(e) {
+    toast('保存エラー: ' + e.message, true);
+  }
+  loading(false);
+});
+
+function resetInputForm() {
+  document.getElementById('inp-date').value = todayStr();
+  document.getElementById('inp-dept').value = '';
+  buildStaffRows('inp-staff-rows');
+  document.getElementById('inp-note').value = '';
+  document.getElementById('dup-warning').classList.remove('show');
+}
+
+// ===== recordを保存（新規or上書き） =====
+async function saveRecord(existingId, date, deptId, staffIds, note) {
+  if (existingId) {
+    // 更新
+    await sbPatch('records', `id=eq.${existingId}`, { record_date: date, department_id: deptId, note });
+    await sbDelete('record_staff', `record_id=eq.${existingId}`);
+  } else {
+    // 新規
+    const rows = await sbPost('records', { record_date: date, department_id: deptId, note });
+    existingId = rows[0].id;
+  }
+  // record_staff 一括挿入
+  await sbPost('record_staff', staffIds.map(sid => ({ record_id: existingId, staff_id: sid })));
+}
+
+// ===== 重複上書き =====
+document.getElementById('btn-dup-overwrite').addEventListener('click', async () => {
+  document.getElementById('dup-modal').classList.remove('open');
+  const date     = document.getElementById('inp-date').value;
+  const deptId   = parseInt(document.getElementById('inp-dept').value);
+  const staffIds = getCheckedStaffIds('inp-staff-rows');
+  const note     = document.getElementById('inp-note').value;
+
+  loading(true);
+  try {
+    await saveRecord(pendingDupId, date, deptId, staffIds, note);
+    toast('上書きしました ✓');
+    resetInputForm();
+    pendingDupId = null;
+    await loadRecords();
+    renderRecordList();
+  } catch(e) {
+    toast('エラーが発生しました', true);
+  }
+  loading(false);
+});
+document.getElementById('btn-dup-cancel').addEventListener('click', () => {
+  document.getElementById('dup-modal').classList.remove('open');
+  pendingDupId = null;
+});
+
+// ===== 一覧描画 =====
+function renderRecordList() {
+  const container = document.getElementById('records-container');
+  if (!records.length) {
+    container.innerHTML = '<div class="no-records">この月の記録はありません</div>';
+    return;
+  }
+  container.innerHTML = records.map(r => {
+    const d   = new Date(r.record_date + 'T00:00:00');
+    const day = d.getDate();
+    const dow = dowJa[d.getDay()];
+    const cls = d.getDay() === 0 ? 'sun' : (d.getDay() === 6 ? 'sat' : '');
+    return `<div class="rec-item" onclick="openEdit(${r.id})">
+      <div class="rec-date-box">
+        <div class="rec-date-day">${day}</div>
+        <div class="rec-date-dow ${cls}">${dow}</div>
+      </div>
+      <div class="rec-body">
+        <div class="rec-dept">${escHtml(r.dept_name)}</div>
+        <div class="rec-staff">${(r.staff_list||[]).map(s=>escHtml(s.name)).join('・')}</div>
+        ${r.note ? `<div class="rec-note">${escHtml(r.note)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== 月ナビ =====
+function updateMonthLabels() {
+  document.getElementById('list-month-label').textContent = monthLabel(listYear, listMonth);
+  document.getElementById('exp-month-label').textContent  = monthLabel(expYear, expMonth);
+}
+
+document.getElementById('list-prev').addEventListener('click', async () => {
+  listMonth--; if (listMonth < 1) { listMonth = 12; listYear--; }
+  updateMonthLabels(); loading(true);
+  await loadRecords(); renderRecordList(); loading(false);
+});
+document.getElementById('list-next').addEventListener('click', async () => {
+  listMonth++; if (listMonth > 12) { listMonth = 1; listYear++; }
+  updateMonthLabels(); loading(true);
+  await loadRecords(); renderRecordList(); loading(false);
+});
+document.getElementById('exp-prev').addEventListener('click', () => {
+  expMonth--; if (expMonth < 1) { expMonth = 12; expYear--; }
+  updateMonthLabels();
+});
+document.getElementById('exp-next').addEventListener('click', () => {
+  expMonth++; if (expMonth > 12) { expMonth = 1; expYear++; }
+  updateMonthLabels();
+});
+
+// ===== 訂正モーダル =====
+function openEdit(id) {
+  const rec = records.find(r => String(r.id) === String(id));
+  if (!rec) return;
+  document.getElementById('edit-id').value    = rec.id;
+  document.getElementById('edit-date').value  = rec.record_date;
+  document.getElementById('edit-note').value  = rec.note || '';
+  buildOptions(document.getElementById('edit-dept'), departments, rec.dept_id);
+  buildStaffRows('edit-staff-rows', rec.staff_ids || []);
+  document.getElementById('edit-modal').classList.add('open');
+}
+document.getElementById('btn-edit-cancel').addEventListener('click', () => {
+  document.getElementById('edit-modal').classList.remove('open');
+});
+
+document.getElementById('btn-edit-save').addEventListener('click', async () => {
+  const id       = parseInt(document.getElementById('edit-id').value);
+  const date     = document.getElementById('edit-date').value;
+  const deptId   = parseInt(document.getElementById('edit-dept').value);
+  const staffIds = getCheckedStaffIds('edit-staff-rows');
+  const note     = document.getElementById('edit-note').value;
+  if (!date || !deptId || !staffIds.length) { toast('実施者を1名以上選択してください', true); return; }
+  loading(true);
+  try {
+    await saveRecord(id, date, deptId, staffIds, note);
+    document.getElementById('edit-modal').classList.remove('open');
+    toast('訂正しました ✓');
+    await loadRecords(); renderRecordList();
+  } catch(e) { toast('保存エラー: ' + e.message, true); }
+  loading(false);
+});
+
+document.getElementById('btn-edit-delete').addEventListener('click', async () => {
+  if (!confirm('この記録を削除しますか？')) return;
+  const id = parseInt(document.getElementById('edit-id').value);
+  loading(true);
+  try {
+    // record_staff は CASCADE DELETE で自動削除
+    await sbDelete('records', `id=eq.${id}`);
+    document.getElementById('edit-modal').classList.remove('open');
+    toast('削除しました');
+    await loadRecords(); renderRecordList();
+  } catch(e) { toast('削除エラー: ' + e.message, true); }
+  loading(false);
+});
+
+// モーダル外タップで閉じる
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ===== 設定：担当部署 =====
+async function renderDeptList() {
+  const list = document.getElementById('dept-list');
+  list.innerHTML = departments.map(d =>
+    `<div class="setting-item">
+      <span>${escHtml(d.name)}</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteDept(${d.id})">削除</button>
+    </div>`
+  ).join('') || '<div class="setting-item"><span style="color:var(--sub)">部署なし</span></div>';
+}
+
+async function deleteDept(id) {
+  if (!confirm('この部署を削除しますか？')) return;
+  loading(true);
+  try {
+    // 使用中チェック
+    const used = await sbGet('records', `department_id=eq.${id}&select=id&limit=1`);
+    if (used.length) { toast('記録で使用中のため削除できません', true); loading(false); return; }
+    await sbDelete('departments', `id=eq.${id}`);
+    await loadDepts(); renderDeptList(); populateSelects();
+    toast('削除しました');
+  } catch(e) { toast('削除エラー: ' + e.message, true); }
+  loading(false);
+}
+
+document.getElementById('btn-add-dept').addEventListener('click', async () => {
+  const name = document.getElementById('new-dept').value.trim();
+  if (!name) { toast('部署名を入力してください', true); return; }
+  loading(true);
+  try {
+    const maxRow = await sbGet('departments', 'select=sort_order&order=sort_order.desc&limit=1');
+    const nextOrder = maxRow.length ? (maxRow[0].sort_order + 1) : 1;
+    await sbPost('departments', { name, sort_order: nextOrder });
+    document.getElementById('new-dept').value = '';
+    await loadDepts(); renderDeptList(); populateSelects();
+    toast('追加しました ✓');
+  } catch(e) { toast('追加エラー: ' + e.message, true); }
+  loading(false);
+});
+
+// ===== 設定：実施者 =====
+async function renderStaffList() {
+  const list = document.getElementById('staff-list');
+  list.innerHTML = staffList.map(s =>
+    `<div class="setting-item">
+      <span>${escHtml(s.name)}</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteStaff(${s.id})">削除</button>
+    </div>`
+  ).join('') || '<div class="setting-item"><span style="color:var(--sub)">実施者なし</span></div>';
+}
+
+async function deleteStaff(id) {
+  if (!confirm('この実施者を削除しますか？')) return;
+  loading(true);
+  try {
+    const used = await sbGet('record_staff', `staff_id=eq.${id}&select=id&limit=1`);
+    if (used.length) { toast('記録で使用中のため削除できません', true); loading(false); return; }
+    await sbDelete('staff', `id=eq.${id}`);
+    await loadStaff(); renderStaffList(); populateSelects();
+    toast('削除しました');
+  } catch(e) { toast('削除エラー: ' + e.message, true); }
+  loading(false);
+}
+
+document.getElementById('btn-add-staff').addEventListener('click', async () => {
+  const name = document.getElementById('new-staff').value.trim();
+  if (!name) { toast('実施者名を入力してください', true); return; }
+  loading(true);
+  try {
+    const maxRow = await sbGet('staff', 'select=sort_order&order=sort_order.desc&limit=1');
+    const nextOrder = maxRow.length ? (maxRow[0].sort_order + 1) : 1;
+    await sbPost('staff', { name, sort_order: nextOrder });
+    document.getElementById('new-staff').value = '';
+    await loadStaff(); renderStaffList(); populateSelects();
+    toast('追加しました ✓');
+  } catch(e) { toast('追加エラー: ' + e.message, true); }
+  loading(false);
+});
+
+// ===== タブ切り替え =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'settings') {
+      renderDeptList();
+      renderStaffList();
+    }
+  });
+});
+
+// ===== リアルタイム重複チェック =====
+document.getElementById('inp-date').addEventListener('change', checkDup);
+document.getElementById('inp-dept').addEventListener('change', checkDup);
+
+// ===== 出力 =====
+// PDF：ブラウザ印刷ダイアログを利用
+document.getElementById('btn-pdf').addEventListener('click', () => {
+  exportPdf();
+});
+
+function exportPdf() {
+  const cd = document.getElementById('exp-confirm-date').value;
+  const cb = document.getElementById('exp-confirm-by').value;
+
+  // 出力対象月のデータをフィルタ（expYear/expMonthで）
+  const from = `${expYear}-${String(expMonth).padStart(2,'0')}-01`;
+  const lastDay = new Date(expYear, expMonth, 0).getDate();
+  const to = `${expYear}-${String(expMonth).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+
+  // 出力用データを取得して印刷ウィンドウを開く
+  loading(true);
+
+  const fetchMonth = async () => {
+    const recs = await sbGet(
+      'records',
+      `record_date=gte.${from}&record_date=lte.${to}&order=record_date,department_id&select=*,departments(id,name,sort_order)`
+    );
+    if (!recs.length) { loading(false); toast('この月の記録はありません', true); return; }
+
+    const recIds = recs.map(r => r.id);
+    const staffRows = await sbGet(
+      'record_staff',
+      `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name,sort_order)&order=staff(sort_order)`
+    );
+    const staffMap = {};
+    for (const sr of staffRows) {
+      if (!staffMap[sr.record_id]) staffMap[sr.record_id] = [];
+      staffMap[sr.record_id].push(sr.staff);
+    }
+
+    const label = expYear + '年' + expMonth + '月';
+    const dowMap = {Mon:'月',Tue:'火',Wed:'水',Thu:'木',Fri:'金',Sat:'土',Sun:'日'};
+
+    const rows = recs.map(r => {
+      const d = new Date(r.record_date + 'T00:00:00');
+      const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const dow = dowMap[dayNames[d.getDay()]];
+      const cls = d.getDay() === 0 ? 'sun' : (d.getDay() === 6 ? 'sat' : '');
+      const staffNames = (staffMap[r.id] || []).map(s => escHtml(s.name)).join('・');
+      return `<tr>
+        <td class="center">${r.record_date.replace(/-/g,'/')}</td>
+        <td class="center ${cls}">${dow}</td>
+        <td>${escHtml(r.departments.name)}</td>
+        <td>${staffNames}</td>
+        <td>${escHtml(r.note||'')}</td>
+      </tr>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">
+<title>石灰散布記録 ${label}</title>
+<style>
+  @page{size:A4 portrait;margin:12mm}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Meiryo','MS Gothic','Hiragino Kaku Gothic ProN',sans-serif;font-size:10px;color:#000}
+  .hdr{text-align:center;margin-bottom:8px}
+  .hdr h1{font-size:14px;font-weight:bold;margin-bottom:2px}
+  table{width:100%;border-collapse:collapse;margin-top:6px}
+  th,td{border:1px solid #555;padding:4px 6px}
+  th{background:#d8e8d4;font-weight:bold;text-align:center}
+  td.center{text-align:center}
+  tr:nth-child(even) td{background:#f7f7f7}
+  .sat{color:#1a237e}.sun{color:#b71c1c}
+  .confirm-section{margin-top:10px;display:flex;gap:40px;justify-content:flex-end;font-size:10px}
+  .confirm-field{display:flex;align-items:center;gap:8px}
+  .confirm-field .val{border-bottom:1px solid #333;min-width:100px;padding:1px 4px}
+  .print-btn{display:block;margin:10px auto;padding:8px 24px;background:#2d5a27;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer}
+  @media print{.print-btn{display:none}}
+</style></head><body>
+<button class="print-btn" onclick="window.print()">印刷 / PDF保存</button>
+<div class="hdr"><h1>石灰散布記録</h1><div>${label}</div></div>
+<table><thead><tr>
+  <th style="width:12%">日付</th><th style="width:5%">曜</th>
+  <th style="width:22%">担当部署</th><th style="width:26%">実施者</th><th>備考</th>
+</tr></thead><tbody>${rows}</tbody></table>
+<div class="confirm-section">
+  <div class="confirm-field"><span>確認日</span><span class="val">${escHtml(cd)}</span></div>
+  <div class="confirm-field"><span>確認者</span><span class="val">${escHtml(cb)}</span></div>
+</div>
+<button class="print-btn" onclick="window.print()">印刷 / PDF保存</button>
+</body></html>`;
+
+    const w = window.open('', '_blank');
+    w.document.write(html);
+    w.document.close();
+    loading(false);
+  };
+
+  fetchMonth().catch(e => { toast('出力エラー: ' + e.message, true); loading(false); });
+}
+
+// CSV出力（クライアントサイドで生成）
+document.getElementById('btn-csv').addEventListener('click', () => {
+  exportCsv();
+});
+
+async function exportCsv() {
+  const cd = document.getElementById('exp-confirm-date').value;
+  const cb = document.getElementById('exp-confirm-by').value;
+  const label = expYear + '年' + expMonth + '月';
+
+  const from = `${expYear}-${String(expMonth).padStart(2,'0')}-01`;
+  const lastDay = new Date(expYear, expMonth, 0).getDate();
+  const to = `${expYear}-${String(expMonth).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+
+  loading(true);
+  try {
+    const recs = await sbGet(
+      'records',
+      `record_date=gte.${from}&record_date=lte.${to}&order=record_date,department_id&select=*,departments(id,name,sort_order)`
+    );
+
+    const staffMap = {};
+    if (recs.length) {
+      const recIds = recs.map(r => r.id);
+      const staffRows = await sbGet(
+        'record_staff',
+        `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name,sort_order)&order=staff(sort_order)`
+      );
+      for (const sr of staffRows) {
+        if (!staffMap[sr.record_id]) staffMap[sr.record_id] = [];
+        staffMap[sr.record_id].push(sr.staff.name);
+      }
+    }
+
+    const dowMap = {0:'日',1:'月',2:'火',3:'水',4:'木',5:'金',6:'土'};
+    const lines = [];
+    const toCsv = (...cols) => cols.map(c => '"' + String(c||'').replace(/"/g,'""') + '"').join(',');
+
+    lines.push(toCsv('石灰散布記録', label));
+    lines.push(toCsv('確認日', cd, '確認者', cb));
+    lines.push('');
+    lines.push(toCsv('日付', '曜日', '担当部署', '実施者', '備考'));
+    for (const r of recs) {
+      const d = new Date(r.record_date + 'T00:00:00');
+      const dow = dowMap[d.getDay()];
+      const staffNames = (staffMap[r.id] || []).join('・');
+      lines.push(toCsv(r.record_date.replace(/-/g,'/'), dow, r.departments.name, staffNames, r.note||''));
+    }
+    lines.push('');
+    lines.push(toCsv('確認日', cd, '確認者', cb));
+
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lime_records_${expYear}${String(expMonth).padStart(2,'0')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    toast('CSV出力エラー: ' + e.message, true);
+  }
+  loading(false);
+}
+
+// ===== 起動 =====
+init();
+</script>
+</body>
+</html>
