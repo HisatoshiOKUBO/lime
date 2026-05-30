@@ -586,11 +586,11 @@ async function init() {
 
 // ===== データ読み込み =====
 async function loadDepts() {
-  departments = await sbGet('departments', 'order=sort_order,id');
+  departments = await sbGet('departments', 'order=sort_order.asc,id.asc');
 }
 
 async function loadStaff() {
-  staffList = await sbGet('staff', 'order=sort_order,id');
+  staffList = await sbGet('staff', 'order=sort_order.asc,id.asc');
 }
 
 async function loadRecords() {
@@ -602,7 +602,7 @@ async function loadRecords() {
   // records と departments を JOIN（Supabase embedded resource）
   const recs = await sbGet(
     'records',
-    `record_date=gte.${from}&record_date=lte.${to}&order=record_date,department_id&select=*,departments(id,name,sort_order)`
+    `record_date=gte.${from}&record_date=lte.${to}&order=record_date.asc,department_id.asc&select=*,departments(id,name)`
   );
 
   if (!recs.length) { records = []; return; }
@@ -611,7 +611,7 @@ async function loadRecords() {
   const recIds = recs.map(r => r.id);
   const staffRows = await sbGet(
     'record_staff',
-    `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name,sort_order)&order=staff(sort_order),staff(id)`
+    `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name)&order=staff_id.asc`
   );
 
   // staffMapを構築
@@ -1002,14 +1002,14 @@ function exportPdf() {
   const fetchMonth = async () => {
     const recs = await sbGet(
       'records',
-      `record_date=gte.${from}&record_date=lte.${to}&order=record_date,department_id&select=*,departments(id,name,sort_order)`
+      `record_date=gte.${from}&record_date=lte.${to}&order=record_date.asc,department_id.asc&select=*,departments(id,name)`
     );
     if (!recs.length) { loading(false); toast('この月の記録はありません', true); return; }
 
     const recIds = recs.map(r => r.id);
     const staffRows = await sbGet(
       'record_staff',
-      `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name,sort_order)&order=staff(sort_order)`
+      `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name)&order=staff_id.asc`
     );
     const staffMap = {};
     for (const sr of staffRows) {
@@ -1095,7 +1095,7 @@ async function exportCsv() {
   try {
     const recs = await sbGet(
       'records',
-      `record_date=gte.${from}&record_date=lte.${to}&order=record_date,department_id&select=*,departments(id,name,sort_order)`
+      `record_date=gte.${from}&record_date=lte.${to}&order=record_date.asc,department_id.asc&select=*,departments(id,name)`
     );
 
     const staffMap = {};
@@ -1103,7 +1103,7 @@ async function exportCsv() {
       const recIds = recs.map(r => r.id);
       const staffRows = await sbGet(
         'record_staff',
-        `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name,sort_order)&order=staff(sort_order)`
+        `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name)&order=staff_id.asc`
       );
       for (const sr of staffRows) {
         if (!staffMap[sr.record_id]) staffMap[sr.record_id] = [];
