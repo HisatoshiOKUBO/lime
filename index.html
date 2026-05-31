@@ -586,11 +586,11 @@ async function init() {
 
 // ===== データ読み込み =====
 async function loadDepts() {
-  departments = await sbGet('departments', 'order=sort_order.asc,id.asc');
+  departments = await sbGet('lime_spread_departments', 'order=sort_order.asc,id.asc');
 }
 
 async function loadStaff() {
-  staffList = await sbGet('staff', 'order=sort_order.asc,id.asc');
+  staffList = await sbGet('lime_spread_staff', 'order=sort_order.asc,id.asc');
 }
 
 async function loadRecords() {
@@ -601,8 +601,8 @@ async function loadRecords() {
 
   // records と departments を JOIN（Supabase embedded resource）
   const recs = await sbGet(
-    'records',
-    `record_date=gte.${from}&record_date=lte.${to}&order=record_date.asc,department_id.asc&select=*,departments(id,name)`
+    'lime_spread_records',
+    `record_date=gte.${from}&record_date=lte.${to}&order=record_date.asc,department_id.asc&select=*,departments:lime_spread_departments(id,name)`
   );
 
   if (!recs.length) { records = []; return; }
@@ -610,8 +610,8 @@ async function loadRecords() {
   // record_staff と staff を一括取得
   const recIds = recs.map(r => r.id);
   const staffRows = await sbGet(
-    'record_staff',
-    `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name)&order=staff_id.asc`
+    'lime_spread_record_staff',
+    `record_id=in.(${recIds.join(',')})&select=record_id,staff:lime_spread_staff(id,name)&order=staff_id.asc`
   );
 
   // staffMapを構築
@@ -713,7 +713,7 @@ document.getElementById('btn-save').addEventListener('click', async () => {
   loading(true);
   try {
     // 重複チェック
-    const existing = await sbGet('records', `record_date=eq.${date}&department_id=eq.${deptId}&select=id&limit=1`);
+    const existing = await sbGet('lime_spread_records', `record_date=eq.${date}&department_id=eq.${deptId}&select=id&limit=1`);
     if (existing.length) {
       pendingDupId = existing[0].id;
       loading(false);
@@ -743,15 +743,15 @@ function resetInputForm() {
 async function saveRecord(existingId, date, deptId, staffIds, note) {
   if (existingId) {
     // 更新
-    await sbPatch('records', `id=eq.${existingId}`, { record_date: date, department_id: deptId, note });
-    await sbDelete('record_staff', `record_id=eq.${existingId}`);
+    await sbPatch('lime_spread_records', `id=eq.${existingId}`, { record_date: date, department_id: deptId, note });
+    await sbDelete('lime_spread_record_staff', `record_id=eq.${existingId}`);
   } else {
     // 新規
-    const rows = await sbPost('records', { record_date: date, department_id: deptId, note });
+    const rows = await sbPost('lime_spread_records', { record_date: date, department_id: deptId, note });
     existingId = rows[0].id;
   }
   // record_staff 一括挿入
-  await sbPost('record_staff', staffIds.map(sid => ({ record_id: existingId, staff_id: sid })));
+  await sbPost('lime_spread_record_staff', staffIds.map(sid => ({ record_id: existingId, staff_id: sid })));
 }
 
 // ===== 重複上書き =====
@@ -869,7 +869,7 @@ document.getElementById('btn-edit-delete').addEventListener('click', async () =>
   loading(true);
   try {
     // record_staff は CASCADE DELETE で自動削除
-    await sbDelete('records', `id=eq.${id}`);
+    await sbDelete('lime_spread_records', `id=eq.${id}`);
     document.getElementById('edit-modal').classList.remove('open');
     toast('削除しました');
     await loadRecords(); renderRecordList();
@@ -900,9 +900,9 @@ async function deleteDept(id) {
   loading(true);
   try {
     // 使用中チェック
-    const used = await sbGet('records', `department_id=eq.${id}&select=id&limit=1`);
+    const used = await sbGet('lime_spread_records', `department_id=eq.${id}&select=id&limit=1`);
     if (used.length) { toast('記録で使用中のため削除できません', true); loading(false); return; }
-    await sbDelete('departments', `id=eq.${id}`);
+    await sbDelete('lime_spread_departments', `id=eq.${id}`);
     await loadDepts(); renderDeptList(); populateSelects();
     toast('削除しました');
   } catch(e) { toast('削除エラー: ' + e.message, true); }
@@ -914,9 +914,9 @@ document.getElementById('btn-add-dept').addEventListener('click', async () => {
   if (!name) { toast('部署名を入力してください', true); return; }
   loading(true);
   try {
-    const maxRow = await sbGet('departments', 'select=sort_order&order=sort_order.desc&limit=1');
+    const maxRow = await sbGet('lime_spread_departments', 'select=sort_order&order=sort_order.desc&limit=1');
     const nextOrder = maxRow.length ? (maxRow[0].sort_order + 1) : 1;
-    await sbPost('departments', { name, sort_order: nextOrder });
+    await sbPost('lime_spread_departments', { name, sort_order: nextOrder });
     document.getElementById('new-dept').value = '';
     await loadDepts(); renderDeptList(); populateSelects();
     toast('追加しました ✓');
@@ -939,9 +939,9 @@ async function deleteStaff(id) {
   if (!confirm('この実施者を削除しますか？')) return;
   loading(true);
   try {
-    const used = await sbGet('record_staff', `staff_id=eq.${id}&select=id&limit=1`);
+    const used = await sbGet('lime_spread_record_staff', `staff_id=eq.${id}&select=id&limit=1`);
     if (used.length) { toast('記録で使用中のため削除できません', true); loading(false); return; }
-    await sbDelete('staff', `id=eq.${id}`);
+    await sbDelete('lime_spread_staff', `id=eq.${id}`);
     await loadStaff(); renderStaffList(); populateSelects();
     toast('削除しました');
   } catch(e) { toast('削除エラー: ' + e.message, true); }
@@ -953,9 +953,9 @@ document.getElementById('btn-add-staff').addEventListener('click', async () => {
   if (!name) { toast('実施者名を入力してください', true); return; }
   loading(true);
   try {
-    const maxRow = await sbGet('staff', 'select=sort_order&order=sort_order.desc&limit=1');
+    const maxRow = await sbGet('lime_spread_staff', 'select=sort_order&order=sort_order.desc&limit=1');
     const nextOrder = maxRow.length ? (maxRow[0].sort_order + 1) : 1;
-    await sbPost('staff', { name, sort_order: nextOrder });
+    await sbPost('lime_spread_staff', { name, sort_order: nextOrder });
     document.getElementById('new-staff').value = '';
     await loadStaff(); renderStaffList(); populateSelects();
     toast('追加しました ✓');
@@ -1001,15 +1001,15 @@ function exportPdf() {
 
   const fetchMonth = async () => {
     const recs = await sbGet(
-      'records',
-      `record_date=gte.${from}&record_date=lte.${to}&order=record_date.asc,department_id.asc&select=*,departments(id,name)`
+      'lime_spread_records',
+      `record_date=gte.${from}&record_date=lte.${to}&order=record_date.asc,department_id.asc&select=*,departments:lime_spread_departments(id,name)`
     );
     if (!recs.length) { loading(false); toast('この月の記録はありません', true); return; }
 
     const recIds = recs.map(r => r.id);
     const staffRows = await sbGet(
-      'record_staff',
-      `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name)&order=staff_id.asc`
+      'lime_spread_record_staff',
+      `record_id=in.(${recIds.join(',')})&select=record_id,staff:lime_spread_staff(id,name)&order=staff_id.asc`
     );
     const staffMap = {};
     for (const sr of staffRows) {
@@ -1094,16 +1094,16 @@ async function exportCsv() {
   loading(true);
   try {
     const recs = await sbGet(
-      'records',
-      `record_date=gte.${from}&record_date=lte.${to}&order=record_date.asc,department_id.asc&select=*,departments(id,name)`
+      'lime_spread_records',
+      `record_date=gte.${from}&record_date=lte.${to}&order=record_date.asc,department_id.asc&select=*,departments:lime_spread_departments(id,name)`
     );
 
     const staffMap = {};
     if (recs.length) {
       const recIds = recs.map(r => r.id);
       const staffRows = await sbGet(
-        'record_staff',
-        `record_id=in.(${recIds.join(',')})&select=record_id,staff(id,name)&order=staff_id.asc`
+        'lime_spread_record_staff',
+        `record_id=in.(${recIds.join(',')})&select=record_id,staff:lime_spread_staff(id,name)&order=staff_id.asc`
       );
       for (const sr of staffRows) {
         if (!staffMap[sr.record_id]) staffMap[sr.record_id] = [];
